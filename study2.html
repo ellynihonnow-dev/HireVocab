@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ELLY日職實驗室｜HR實戰面試單字練習器</title>
+    <style>
+        :root {
+            --primary-color: #6d9eeb; /* 專業且優雅的藍 */
+            --accent-color: #d4a373;  /* 溫暖的質感色 */
+            --bg-color: #f8f9fa;
+            --save-color: #ffcc00;
+            --danger-color: #ff4757;
+        }
+        body { font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif; background: var(--bg-color); display: flex; flex-direction: column; align-items: center; padding: 20px; color: #333; }
+        
+        /* 品牌頭部 */
+        .brand-header { width: 100%; max-width: 500px; text-align: center; margin-bottom: 20px; }
+        .brand-name { font-size: 1.5rem; font-weight: bold; color: var(--primary-color); letter-spacing: 1px; }
+        .brand-tagline { font-size: 0.85rem; color: #666; margin-top: 5px; }
+
+        .card { background: white; width: 100%; max-width: 500px; border-radius: 20px; padding: 30px; box-shadow: 0 15px 35px rgba(0,0,0,0.08); position: relative; }
+        .word-header { display: flex; justify-content: space-between; align-items: center; }
+        .word { font-size: 2.2rem; color: var(--primary-color); margin: 15px 0; font-weight: bold; }
+        .phonetic { color: #333; cursor: pointer; font-size: 0.95rem; background: #f0f0f0; padding: 8px 18px; border-radius: 50px; border: 1px solid #ddd; font-weight: bold; transition: 0.2s; }
+        .phonetic:hover { background: #e8e8e8; transform: translateY(-2px); }
+        .meaning { font-size: 1.2rem; font-weight: bold; margin-bottom: 15px; color: var(--accent-color); border-bottom: 2px solid #eee; padding-bottom: 5px; }
+        .examples { background: #fdfcfb; padding: 18px; border-left: 4px solid var(--accent-color); border-radius: 8px; margin-top: 10px; }
+        .example-item { margin-bottom: 12px; font-size: 0.95rem; line-height: 1.6; color: #555; }
+        
+        .btns { margin-top: 25px; display: flex; gap: 12px; }
+        button { flex: 1; padding: 14px; border: none; border-radius: 12px; cursor: pointer; font-size: 1rem; transition: 0.3s; font-weight: bold; }
+        .next-btn { background: var(--primary-color); color: white; box-shadow: 0 4px 15px rgba(109, 158, 235, 0.3); }
+        .save-btn { background: var(--save-color); color: #333; }
+        .saved { background: var(--danger-color); color: white; }
+
+        /* 單字本摺疊 */
+        .my-list-section { margin-top: 25px; border-top: 1px solid #eee; padding-top: 15px; width: 100%; }
+        .collapse-header { display: flex; justify-content: space-between; align-items: center; cursor: pointer; padding: 12px 15px; background: #f1f3f5; border-radius: 10px; transition: 0.2s; }
+        .collapse-header:hover { background: #e9ecef; }
+        .collapse-content { display: none; margin-top: 12px; max-height: 350px; overflow-y: auto; padding-right: 5px; }
+        #myVocabularyList { list-style: none; padding: 0; }
+        #myVocabularyList li { background: #fff; margin-bottom: 8px; padding: 12px; border-radius: 10px; border: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; cursor: pointer; font-size: 0.9rem; }
+        #myVocabularyList li:hover { border-color: var(--primary-color); }
+        .remove-btn { color: #aaa; background: none; border: none; font-size: 0.8rem; cursor: pointer; padding: 5px; flex: 0; }
+        .remove-btn:hover { color: var(--danger-color); }
+
+        /* 底部品牌資訊 */
+        .brand-footer { width: 100%; max-width: 500px; margin-top: 40px; text-align: center; padding: 20px; border-radius: 15px; background: #fff; border: 1px solid #eee; }
+        .hr-badge { display: inline-block; background: var(--accent-color); color: white; padding: 3px 10px; border-radius: 4px; font-size: 0.75rem; margin-bottom: 10px; }
+        .footer-bio { font-size: 0.85rem; line-height: 1.6; color: #666; }
+        .cta-button { display: inline-block; margin-top: 15px; padding: 10px 20px; background: #000; color: #fff; text-decoration: none; border-radius: 8px; font-size: 0.9rem; font-weight: bold; }
+        .golden-rule { font-style: italic; color: var(--accent-color); font-size: 0.8rem; margin-top: 15px; }
+    </style>
+</head>
+<body>
+
+<div class="brand-header">
+    <div class="brand-name">ELLY日職實驗室｜HR實戰面試單字練習器</div>
+    <div class="brand-tagline">每月 300+求職者面試經驗，帶你看見 HR 沒說的錄取關鍵。</div>
+</div>
+
+<div class="card">
+    <div id="word-display">
+        <div class="word-header">
+            <button class="phonetic" onclick="speak()">🔊 點擊日文發音</button>
+            <button id="saveBtn" class="save-btn" onclick="toggleSave()">⭐ 加入收藏</button>
+        </div>
+        <div class="word" id="currentWord">載入中...</div>
+        <div class="meaning" id="currentMeaning"></div>
+        <div class="examples" id="exampleList"></div>
+    </div>
+
+    <div class="btns">
+        <button class="next-btn" onclick="getRandomWord()">下一個面試單字</button>
+    </div>
+
+    <div class="my-list-section">
+        <div class="collapse-header" onclick="toggleCollapse()">
+            <h3 style="margin:0; font-size: 1rem;">我的單字本 (<span id="count">0</span>)</h3>
+            <span id="arrow" style="font-size: 0.8rem; color: #888;">▼ 展開複習</span>
+        </div>
+        <div id="collapseContent" class="collapse-content">
+            <ul id="myVocabularyList"></ul>
+        </div>
+    </div>
+</div>
+
+<div class="brand-footer">
+    <div class="hr-badge">日本就職準備 × 人資HR思維</div>
+    <div class="footer-bio">
+        <strong>ELLY ｜日本生活✕面試職場觀察</strong><br>
+        🖥️ 日本工作 9 年+，現任人材派遣公司採用擔當<br>
+        「這不只是單字，更是你在面試中展現專業的關鍵。」
+    </div>
+    <a href="https://www.instagram.com/ellynihonnow" target="_blank" class="cta-button">追蹤 IG📒日本面試知識</a>
+    <div class="golden-rule">不違己心，永遠善良💪🏻</div>
+</div>
+
+<script>
+    // 摺疊功能
+    function toggleCollapse() {
+        const content = document.getElementById('collapseContent');
+        const arrow = document.getElementById('arrow');
+        if (content.style.display === "block") {
+            content.style.display = "none";
+            arrow.innerText = "▼ 展開複習";
+        } else {
+            content.style.display = "block";
+            arrow.innerText = "▲ 收起清單";
+        }
+    }
+
+// --- 單字庫開始 ---
+const wordBank = [
+        // --- 1. 個人行銷與核心特質 (HR看重你的穩定度) ---
+        { word: "自己紹介 (じこしょうかい)", meaning: "自我介紹", examples: ["まずは簡単に自己紹介をお願いいたします。(首先請進行簡短的自我介紹。)", "自己紹介をさせていただきます。私の名前は王と申します。(請容我自我介紹，我姓王。)"] },
+        { word: "自己PR (じこぴーあーる)", meaning: "自我推薦", examples: ["私の自己PRは、課題解決に向けた行動力です。(我的優勢在於解決問題的行動力。)"] },
+        { word: "志望動機 (しぼうどうき)", meaning: "應徵動機", examples: ["貴社の企業理念に共感し、志望いたしました。(我對貴公司的企業理念感到共感。)"] },
+        { word: "長所 (ちょうしょ)", meaning: "優點", examples: ["私の長所は、何事にも前向きに取り組むことです。(我的長處是積極應對任何事。)"] },
+        { word: "短所 (たんしょ)", meaning: "缺點", examples: ["短所を克服するために、日々努力しています。(為了克服缺點，我每天都在努力。)"] },
+        { word: "強み (つよみ)", meaning: "強項", examples: ["私の強みは、異文化環境での適応力です。(我的強項是異文化環境的適應力。)"] },
+        { word: "弱み (よわみ)", meaning: "弱點", examples: ["自分の弱みを理解し、チームで補い合います。(了解自己的弱點，並在團隊中互補。)"] },
+        { word: "積極的 (せっきょくてき)", meaning: "積極的", examples: ["新しい業務にも積極的に挑戦したいです。(想積極挑戰新的業務。)"] },
+        { word: "責任感 (せきにんかん)", meaning: "責任感", examples: ["責任感を持って、最後まで業務を遂行します。(帶著責任感執行業務到底。)"] },
+        { word: "柔軟性 (じゅうなんせい)", meaning: "靈活性", examples: ["状況に応じて、柔軟性を持って対応できます。(能根據狀況靈活對應。)"] },
+        { word: "協調性 (きょうちょうせい)", meaning: "團隊協作力", examples: ["協調性を活かして、円滑な連携を図ります。(發揮協作力，達成圓滑連動。)"] },
+        { word: "忍耐力 (にんたいりょく)", meaning: "忍耐力", examples: ["困難な状況でも諦めない忍耐力があります。(具備困難下也不放棄的韌性。)"] },
+        { word: "誠実 (せいじつ)", meaning: "誠實", examples: ["誠実な対応が、信頼関係を築くと信じています。(相信真誠能建立信賴。)"] },
+        { word: "好奇心 (こうきしん)", meaning: "好奇心", examples: ["新しい技術に対する好奇心が旺盛です。(對新技術有旺盛的好奇心。)"] },
+        { word: "挑戦精神 (ちょうせんせいしん)", meaning: "挑戰精神", examples: ["高い挑戦精神を持って、業務に挑みます。(帶著高度挑戰精神投入業務。)"] },
+        { word: "集中力 (しゅうちゅうりょく)", meaning: "集中力", examples: ["限られた時間で高い集中力を発揮します。(在有限時間內發揮高度集中力。)"] },
+        { word: "主体性 (しゅたいせい)", meaning: "主動性", examples: ["主体性を持って、自ら動くことを意識しています。(意識到要主動採取行動。)"] },
+        { word: "向上心 (こうじょうしん)", meaning: "上進心", examples: ["常に高い目標を掲げ、学ぶ向上心があります。(有設定高目標並學習的上進心。)"] },
+        { word: "幾帳面 (きちょうめん)", meaning: "嚴謹細心", examples: ["几帳面な性格で、ミスのない作業を心がけます。(個性嚴謹，留意作業不出錯。)"] },
+        { word: "前向き (まえむき)", meaning: "正面積極", examples: ["失敗を恐れず、常に前向きに捉えます。(不畏失敗，隨時保持正面思考。)"] },
+        { word: "傾聴力 (けいちょうりょく)", meaning: "傾聽力", examples: ["相手の本音を引き出す傾聴力が武器です。(能引出對方真心話的傾聽力是我的武器。)"] },
+        { word: "分析力 (ぶんせきりょく)", meaning: "分析力", examples: ["データに基づいた分析力で課題を特定します。(透過數據分析力找出課題。)"] },
+        { word: "観察力 (かんさつりょく)", meaning: "觀察力", examples: ["現場の課題を、鋭い観察力で見つけ出します。(以敏銳觀察力找出工作現場課題。)"] },
+        { word: "行動力 (こうどうりょく)", meaning: "行動力", examples: ["考えをすぐ形にする行動力があります。(具備將想法化為行動的行動力。)"] },
+        { word: "継続力 (けいぞくりょく)", meaning: "持續力", examples: ["決めたことをやり抜く継続力が強みです。(堅持到底的持續力是我的強項。)"] },
+
+        // --- 2. 職場實戰與招募術語 (展現專業 HR 認知) ---
+        { word: "内定 (ないてい)", meaning: "錄取/內定", examples: ["第一志望の企業から内定をいただきました。(收到了第一志願的錄取通知。)"] },
+        { word: "転職 (てんしょく)", meaning: "轉職", examples: ["今回の転職ではキャリアアップを目指しています。(這次轉職目標是職涯提升。)"] },
+        { word: "採用 (さいよう)", meaning: "採用/聘用", examples: ["正社員として採用されることを希望しています。(希望能被聘用為正式員工。)"] },
+        { word: "辞退 (じたい)", meaning: "婉拒/謝絕", examples: ["誠に勝手ながら、今回は辞退させていただきます。(非常抱歉，這次請容我婉拒。)"] },
+        { word: "履歴書 (りれきしょ)", meaning: "履歷表", examples: ["履歴書をPDF形式でお送りいたしました。(已將履歷表以PDF格式寄出。)"] },
+        { word: "職務経歴書 (しょくむけいれきしょ)", meaning: "職務經歷書", examples: ["職務経歴書で、これまでのスキルをアピールします。(透過職歷書宣傳技能。)"] },
+        { word: "適性検査 (てきせいけんさ)", meaning: "適性測驗", examples: ["一次面接の後に、適性検査を受検しました。(一面後參加了適性測驗。)"] },
+        { word: "入社 (にゅうしゃ)", meaning: "入職", examples: ["入社後は、一日も早く戦力になりたいです。(入職後想盡快成為戰力。)"] },
+        { word: "退社 (たいしゃ)", meaning: "離職/下班", examples: ["一身上の都合で退社いたしました。(因個人因素已辦理離職。)"] },
+        { word: "正社員 (せいしゃいん)", meaning: "正式員工", examples: ["正社員として責任を持って働きたいです。(想作為正式員工帶著責任感工作。)"] },
+        { word: "契約社員 (けいやくしゃいん)", meaning: "約聘員工", examples: ["契約社員から正社員への登用実績はありますか？(是否有約聘轉正的實績？)"] },
+        { word: "派遣 (はけん)", meaning: "派遣", examples: ["派遣スタッフとしての実務経験があります。(有作為派遣人員的實務經驗。)"] },
+        { word: "試用期間 (しようきかん)", meaning: "試用期", examples: ["試用期間は3ヶ月だと伺っております。(聽說試用期是三個月。)"] },
+        { word: "実務経験 (じつむけいけん)", meaning: "實務經驗", examples: ["IT業界での実務経験が5年ございます。(在IT業有5年實務經驗。)"] },
+        { word: "即戦力 (そくせんりょく)", meaning: "即戰力", examples: ["これまでの経験を活かし、即戦力として貢献します。(活用經驗作為即戰力做出貢獻。)"] },
+        { word: "成果 (せいか)", meaning: "成果/成績", examples: ["目標達成に向けて具体的な成果を出せます。(能為了目標產出具體成果。)"] },
+        { word: "実績 (じっせき)", meaning: "實績", examples: ["営業目標を120%達成した実績があります。(有達成營業目標120%的實績。)"] },
+        { word: "問題解決 (もんだいかいけつ)", meaning: "問題解決", examples: ["迅速に問題解決を図ることが得意です。(擅長迅速謀求解決問題。)"] },
+        { word: "効率 (こうりつ)", meaning: "效率", examples: ["業務の効率を高める提案をいたします。(提出提高業務效率的提案。)"] },
+        { word: "改善 (かいぜん)", meaning: "改善/優化", examples: ["現状を改善し、コスト削減に成功しました。(改善現狀並成功縮減成本。)"] },
+        { word: "目標達成 (もくひょうたっせい)", meaning: "達成目標", examples: ["チーム一丸となり、目標達成を目指します。(全隊一心以達成目標為目標。)"] },
+        { word: "チームワーク (ちーむわーく)", meaning: "團隊合作", examples: ["チームワークを重視し、進捗を共有します。(重視團隊合作並分享進度。)"] },
+        { word: "企画 (きかく)", meaning: "企劃", examples: ["新規事業の企画に携わってきました。(曾參與新事業的企劃。)"] },
+        { word: "提案 (ていあん)", meaning: "提案", examples: ["クライアントの課題に対し、解決策を提案します。(針對客戶課題提案解決方案。)"] },
+        { word: "交渉 (こうしょう)", meaning: "談判/交涉", examples: ["取引先との価格交渉を担当しました。(負責與客戶間的價格談判。)"] },
+        { word: "育成 (いくせい)", meaning: "培育/教育", examples: ["後輩の育成に携わり、チームの底上げをしました。(參與後輩培育提升團隊實力。)"] },
+        { word: "指導 (しどう)", meaning: "指導", examples: ["適切な指導で、新人の定着率を改善しました。(以正確指導改善新人留任率。)"] },
+        { word: "専門知識 (せんもんちしき)", meaning: "專業知識", examples: ["最新の専門知識を習得するよう努めています。(努力習得最新的專業知識。)"] },
+        { word: "顧客対応 (こきゃくたいおう)", meaning: "客戶對應", examples: ["丁寧な顧客対応で、満足度を向上させました。(以禮貌的客服提升滿意度。)"] },
+        { word: "部署横断的 (ぶしょおうだんてき)", meaning: "跨部門的", examples: ["部署横断的なプロジェクトを推進しました。(推動了跨部門的專案。)"] },
+
+        // --- 3. 企業研究與價值觀 (展現 HR 想要共鳴的心) ---
+        { word: "企業理念 (きぎょうりねん)", meaning: "企業理念", examples: ["貴社の企業理念に深く共感いたしました。(對貴公司企業理念深感共鳴。)"] },
+        { word: "ビジョン (びじょん)", meaning: "願景", examples: ["貴社の将来的なビジョンに魅力を感じました。(感受到貴公司未來願景的魅力。)"] },
+        { word: "海外事業 (かいがいじぎょう)", meaning: "海外事業", examples: ["海外事業の拡大に、語学力を活かしたいです。(想在擴大海外事業中發揮語言力。)"] },
+        { word: "シェア (しぇあ)", meaning: "市場佔有率", examples: ["業界シェア1位の技術力を学びたいです。(想學習業界市佔第一的技術力。)"] },
+        { word: "競争力 (きょうそうりょく)", meaning: "競爭力", examples: ["貴社の競争力をさらに高める貢献をします。(為進一步提升貴社競爭力做出貢獻。)"] },
+        { word: "成長性 (せっきょうせい)", meaning: "成長潛力", examples: ["貴社の成長性とともに、自分も成長したいです。(想與貴社的潛力一同成長。)"] },
+        { word: "社風 (しゃふう)", meaning: "公司風氣", examples: ["風通しの良い社風の中で力を発揮したいです。(想在溝通良好的風氣中發揮實力。)"] },
+        { word: "社会貢献 (しゃかいこうけん)", meaning: "社會貢獻", examples: ["事業を通じた社会貢献に魅力を感じます。(感受到透過事業做出社會貢獻的魅力。)"] },
+        { word: "顧客層 (こきゃくそう)", meaning: "客群", examples: ["幅広い顧客層に対応できるスキルがあります。(具備能對應廣泛客群的技能。)"] },
+        { word: "サービス (さーびす)", meaning: "服務", examples: ["質の高いサービスを提供することを心がけます。(留意要提供高質量的服務。)"] },
+        { word: "製品 (せいひん)", meaning: "產品/製品", examples: ["貴社の製品の品質の高さに感銘を受けました。(對貴社產品的高品質感到感銘。)"] },
+        { word: "商品 (しょうひん)", meaning: "商品", examples: ["新商品の魅力をより多くの方に伝えたいです。(想將新商品的魅力傳達給更多人。)"] },
+        { word: "業界トップ (ぎょうかいとっぷ)", meaning: "業界龍頭", examples: ["業界トップを走り続ける姿勢に共感します。(感同持續跑在業界龍頭的態度。)"] },
+        { word: "革新 (かくしん)", meaning: "創新/革新", examples: ["技術革新に挑む貴社で働きたいです。(想在挑戰技術革新的貴社工作。)"] },
+        { word: "持続可能性 (じぞくかのうせい)", meaning: "永續性", examples: ["持続可能性を追求する姿勢を尊敬します。(尊敬追求永續性的態度。)"] },
+        { word: "福利厚生 (ふくりこうせい)", meaning: "福利制度", examples: ["福利厚生が充実しており、長く働ける環境です。(福利充實是能長久工作的環境。)"] },
+        { word: "研修制度 (けんしゅうせいど)", meaning: "研修制度", examples: ["研修制度を通じて、スキルを磨きたいです。(想透過研修制度磨練技能。)"] },
+        { word: "バリュー (ばりゅー)", meaning: "價值觀", examples: ["貴社のバリューに基づいた行動を実践します。(實踐基於貴社價值觀的行動。)"] },
+        { word: "創業 (そうぎょう)", meaning: "創業/創立", examples: ["創業以来の歴史を大切にする姿勢に惹かれました。(被重視創業以來歷史的態度吸引。)"] },
+        { word: "展開 (てんかい)", meaning: "發展/展開", examples: ["新規市場への展開に携わりたいです。(想參與新市場的開拓發展。)"] },
+        { word: "活かす (いかす)", meaning: "活用/發揮", examples: ["自分の強みを最大限に活かせる環境です。(是能最大限度發揮強項的環境。)"] },
+        { word: "習得する (しゅうとくする)", meaning: "習得/學會", examples: ["新しい技術を速やかに習得いたします。(會迅速習得新技術。)"] },
+        { word: "やりがい (やりがい)", meaning: "成就感/價值", examples: ["お客様の笑顔が、私にとってのやりがいです。(客戶的笑容是我的成就感來源。)"] },
+        { word: "検討する (けんとうする)", meaning: "討論/研討", examples: ["具体的になぜそうなるか、改めて検討します。(會具體針對為何如此進行研討。)"] },
+        { word: "努める (つとめる)", meaning: "努力/致力於", examples: ["迅速かつ丁寧な対応に努めます。(致力於迅速且禮貌的對應。)"] },
+        { word: "努力する (どりょくする)", meaning: "努力", examples: ["目標達成のため、地道な努力を惜しみません。(為了目標不惜付出踏實努力。)"] },
+        { word: "実現する (じつげんする)", meaning: "實現", examples: ["貴社で自分のビジョンを実現したいです。(想在貴社實現自己的願景。)"] },
+        { word: "共感する (きょうかんする)", meaning: "共鳴/認同", examples: ["貴社の理念に深く共感し、応募しました。(深感貴社理念共鳴因此應徵。)"] },
+        { word: "学ぶ (まなぶ)", meaning: "學習", examples: ["失敗を恐れず、常に現場から学びます。(不畏失敗隨時從現場學習。)"] },
+        { word: "発揮する (はっきする)", meaning: "發揮", examples: ["これまでの経験を存分に発揮したいです。(想充分發揮至今為止的經驗。)"] },
+        { word: "成長する (せいちょうする)", meaning: "成長", examples: ["会社とともに成長できる人材でありたいです。(想成為能與公司一同成長的人才。)"] },
+
+        // --- 4. 面試邏輯與轉場語 (展現專業日語禮儀) ---
+        { word: "具体的に (ぐたいてきに)", meaning: "具體地", examples: ["具体的にどのような貢献ができるか話します。(說明能具體做出什麼貢獻。)"] },
+        { word: "結論 (けつろん)", meaning: "結論", examples: ["結論から申し上げますと、理由は三点です。(從結論說起理由有三點。)"] },
+        { word: "申し上げます (もうしあげます)", meaning: "告知/說(謙讓)", examples: ["心より御礼申し上げます。(由衷表示感謝。)"] },
+        { word: "したがって (したがって)", meaning: "因此", examples: ["したがって、私は貴社を志望いたします。(因此，我應徵貴公司。)"] },
+        { word: "加えて (くわえて)", meaning: "加上/此外", examples: ["経験に加え、語学力も私の武器です。(除了經驗外，語言力也是武器。)"] },
+        { word: "一方で (いっぽうで)", meaning: "另一方面", examples: ["一方で、慎重になりすぎる面もあります。(另一方面，也有過於慎重的一面。)"] },
+        { word: "最後に (さいごに)", meaning: "最後", examples: ["最後に、一言お伝えしたいことがございます。(最後，有一句話想告訴各位。)"] },
+        { word: "挑戦したい (ちょうせんしたい)", meaning: "想要挑戰", examples: ["新しい分野にぜひ挑戦したいです。(請務必讓我挑戰新領域。)"] },
+        { word: "お願いします (おねがいします)", meaning: "拜託了", examples: ["よろしくお願いいたします。(請多指教/拜託了。)"] },
+        { word: "ありがとうございます (ありがとうございます)", meaning: "謝謝", examples: ["本日はお時間をいただきありがとうございます。(感謝您今日撥冗。)"] },
+        { word: "お時間 (おじかん)", meaning: "您的時間(敬語)", examples: ["貴重なお時間をいただき感謝いたします。(感謝您撥出寶貴的時間。)"] },
+        { word: "コミュニケーション (こみゅにけーしょん)", meaning: "溝通", examples: ["円滑なコミュニケーションを心がけています。(留意要進行圓滑的溝通。)"] },
+        { word: "逆質問 (ぎゃくしつもん)", meaning: "反向提問", examples: ["逆質問で意欲をアピールします。(透過反向提問宣傳積極性。)"] },
+        { word: "キャリアパス (きゃりあぱす)", meaning: "職涯路徑", examples: ["将来的なキャリアパスを教えてください。(請告訴我未來的職涯發展。)"] },
+        { word: "パフォーマンス (ぱふぉーまんす)", meaning: "表現/績效", examples: ["早期に高いパフォーマンスを発揮します。(早期發揮高度表現績效。)"] }
+    ];    // --- 單字庫結束 ---
+    let currentWordObj = null;
+    let savedWords = JSON.parse(localStorage.getItem('myVocab')) || [];
+
+    function getRandomWord() {
+        const randomIndex = Math.floor(Math.random() * wordBank.length);
+        currentWordObj = wordBank[randomIndex];
+        renderWord();
+    }
+
+    window.loadReviewWord = function(wordText) {
+        const found = wordBank.find(item => item.word === wordText);
+        if (found) {
+            currentWordObj = found;
+            renderWord();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    }
+
+    function renderWord() {
+        document.getElementById('currentWord').innerText = currentWordObj.word;
+        document.getElementById('currentMeaning').innerText = currentWordObj.meaning;
+        const list = document.getElementById('exampleList');
+        list.innerHTML = currentWordObj.examples.map(ex => `<div class="example-item">• ${ex}</div>`).join('');
+        updateSaveBtnUI();
+        renderSavedList();
+    }
+
+    // --- 發音調教版本 ---
+    function speak() {
+        if (!currentWordObj) return;
+        window.speechSynthesis.cancel(); // 1. 確保不重疊
+        
+        const cleanWord = currentWordObj.word.split('(')[0].trim();
+        const msg = new SpeechSynthesisUtterance(cleanWord);
+        
+        msg.lang = 'ja-JP';
+        msg.rate = 0.9;  // 2. 語速放慢 10%
+        msg.pitch = 1.1; // 3. 音頻柔和化
+        
+        window.speechSynthesis.speak(msg);
+    }
+
+    function toggleSave() {
+        const index = savedWords.findIndex(item => item.word === currentWordObj.word);
+        if (index > -1) {
+            savedWords.splice(index, 1);
+        } else {
+            savedWords.push(currentWordObj);
+        }
+        localStorage.setItem('myVocab', JSON.stringify(savedWords));
+        updateSaveBtnUI();
+        renderSavedList();
+    }
+
+    function updateSaveBtnUI() {
+        const btn = document.getElementById('saveBtn');
+        const isSaved = savedWords.some(item => item.word === currentWordObj.word);
+        btn.innerText = isSaved ? "❤️ 已在單字本" : "⭐ 加入收藏";
+        btn.className = isSaved ? "save-btn saved" : "save-btn";
+    }
+
+    function renderSavedList() {
+        const listEl = document.getElementById('myVocabularyList');
+        document.getElementById('count').innerText = savedWords.length;
+        listEl.innerHTML = savedWords.map((item, idx) => `
+            <li onclick="loadReviewWord('${item.word}')">
+                <div style="flex-grow:1;">
+                    <strong>${item.word}</strong><br>
+                    <small>${item.meaning}</small>
+                </div>
+                <button class="remove-btn" onclick="event.stopPropagation(); removeSaved(${idx})">移除</button>
+            </li>
+        `).join('');
+    }
+
+    window.removeSaved = function(idx) {
+        savedWords.splice(idx, 1);
+        localStorage.setItem('myVocab', JSON.stringify(savedWords));
+        updateSaveBtnUI();
+        renderSavedList();
+    }
+
+    getRandomWord();
+</script>
+</body>
+</html>
