@@ -260,7 +260,7 @@
     function updateSaveBtnUI() {
         const btn = document.getElementById('saveBtn');
         const isSaved = savedWords.some(item => item.word === currentWordObj.word);
-        btn.innerText = isSaved ? "❤️ 已在單字本" : "⭐ 加入收藏";
+        btn.innerText = isSaved ? "❤️已在單字本" : "⭐加入我的單字本";
         btn.className = isSaved ? "save-btn saved" : "save-btn";
     }
 
