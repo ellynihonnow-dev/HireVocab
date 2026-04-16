@@ -99,32 +99,39 @@
 </div>
 
 <script>
-    // --- 語音功能核心函數 ---
+    // --- 語音功能核心邏輯 (優化版 Google TTS) ---
+    const ttsAudio = new Audio(); // 全域單一物件，避免權限被封鎖
+
     function speak(text) {
         let targetText = text || (currentWordObj ? currentWordObj.word : "");
         if (!targetText) return;
 
-        // 移除半形 () 或全形 （） 及其內部的文字 (例如移除漢字後面的假名提示)
+        // 1. 移除漢字後面的假名提示 () 或 （）
         targetText = targetText.replace(/\([^)]*\)|\（[^）]*\）/g, "").trim();
 
-        // 構建 Google TTS 網址 (ja 代表日文)
+        // 2. 構建 Google TTS 網址 (client=tw-ob 為最自然人聲接口)
         const url = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(targetText)}&tl=ja&client=tw-ob`;
 
-        // 建立或取得隱藏的 audio 標籤來播放
-        let audio = document.getElementById('tts-audio');
-        if (!audio) {
-            audio = document.createElement('audio');
-            audio.id = 'tts-audio';
-            document.body.appendChild(audio);
+        // 3. 設定來源並強制播放
+        ttsAudio.src = url;
+        const playPromise = ttsAudio.play();
+
+        if (playPromise !== undefined) {
+            playPromise.catch(e => {
+                console.error("發音被阻擋:", e);
+                alert("請點擊頁面任意處以啟動發音權限！");
+            });
         }
-        
-        audio.src = url;
-        audio.play().catch(e => {
-            console.error("發音失敗:", e);
-            // 處理瀏覽器阻擋自動播放的情況
-            alert("發音失敗！請先點擊頁面任意處以啟用語音權限。");
-        });
     }
+
+    // 關鍵優化：當使用者進到網頁第一次點擊任何地方時，自動解鎖音訊權限
+    document.addEventListener('click', function unlock() {
+        ttsAudio.play().then(() => {
+            ttsAudio.pause();
+            document.removeEventListener('click', unlock);
+        }).catch(e => console.log("等待初次互動解鎖"));
+    }, { once: true });
+
 
     function toggleCollapse() {
         const content = document.getElementById('collapseContent');
@@ -182,7 +189,7 @@
         { word: "成果 (せいか)", meaning: "成果/成績", examples: ["目標達成に向けて具体的な成果を出せます。(能為了目標產出具體成果。)"] },
         { word: "実績 (じっせき)", meaning: "實績", examples: ["營業目標を120%達成した実績があります。(有達成營業目標120%的實績。)"] },
         { word: "問題解決 (もんだいかいけつ)", meaning: "問題解決", examples: ["迅速に問題解決を図ることが得意です。(擅長迅速謀求解決問題。)"] },
-        { word: "效率 (こうりつ)", meaning: "效率", examples: ["業務の効率を高める提案をいたします。(提出提高業務效率的提案。)"] },
+        { word: "效率 (こうりつ)", meaning: "效率", examples: ["業務の效率を高める提案をいたします。(提出提高業務效率的提案。)"] },
         { word: "改善 (かいぜん)", meaning: "改善/優化", examples: ["現狀を改善し、コスト削減に成功しました。(改善現狀並成功縮減成本。)"] },
         { word: "目標達成 (もくひょうたっせい)", meaning: "達成目標", examples: ["團隊一丸となり、目標達成を目指します。(全隊一心以達成目標為目標。)"] },
         { word: "團隊ワーク (ちーむわーく)", meaning: "團隊合作", examples: ["團隊ワークを重視し、進捗を共有します。(重視團隊合作並分享進度。)"] },
@@ -210,7 +217,7 @@
         { word: "福利厚生 (ふくりこうせい)", meaning: "福利制度", examples: ["福利厚生が充実しており、長く働ける環境です。(福利充實是能長久工作的環境。)"] },
         { word: "研修制度 (けんしゅうせいど)", meaning: "研修制度", examples: ["研修制度を通じて、スキルを磨きたいです。(想透過研修制度磨練技能。)"] },
         { word: "バリュー (ばりゅー)", meaning: "價值觀", examples: ["貴社のバリューに基づいた行動を実践します。(實踐基於貴社價值觀的行動。)"] },
-        { word: "創業 (そうぎょう)", meaning: "創業/創立", examples: ["創業以来の歴史を大切にする姿勢に惹かれました。(被重視創業以來歷史的態度吸引。)"] },
+        { word: "創業 (そうぎ創業)", meaning: "創業/創立", examples: ["創業以来の歴史を大切にする姿勢に惹かれました。(被重視創業以來歷史的態度吸引。)"] },
         { word: "展開 (てんかい)", meaning: "發展/展開", examples: ["新規市場への展開に攜わりたいです。(想參與新市場的開拓發展。)"] },
         { word: "活かす (いかす)", meaning: "活用/發揮", examples: ["自己的強みを最大限に活かせる環境です。(是能最大限度發揮強項的環境。)"] },
         { word: "習得する (しゅうとくする)", meaning: "習得/學會", examples: ["新的技術を速やかに習得いたします。(會迅速習得新技術。)"] },
@@ -264,7 +271,6 @@
         const list = document.getElementById('exampleList');
         
         list.innerHTML = currentWordObj.examples.map(ex => {
-            // 處理單引號以防 JS 報錯
             const cleanEx = ex.replace(/'/g, "\\'"); 
             return `<div class="example-item" onclick="speak('${cleanEx}')">🔊 ${ex}</div>`;
         }).join('');
