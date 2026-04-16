@@ -74,64 +74,62 @@
     </div>
 
 <style>
+    /* 外層大框框 */
     .my-list-section {
-        /* 使用你指定的粉藍色作為背景 */
-        background-color: #cfe2f3; 
-        /* 使用你指定的森林綠作為邊框 */
-        border: 2px solid #59725c; 
-        border-radius: 15px;       /* 圓潤的角更有設計感 */
-        padding: 16px;
-        margin: 20px 0;
-        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* 增加一點點陰影 */
-        font-family: "Microsoft JhengHei", sans-serif;
+        background-color: #cfe2f3; /* 你的粉藍底 */
+        border: 2px solid #59725c;  /* 你的森林綠邊 */
+        border-radius: 12px;
+        padding: 12px;             /* 給內層留一點呼吸空間 */
+        margin: 20px auto;
+        max-width: 90%;            /* 確保在手機上也不會爆開 */
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        overflow: hidden;          /* 萬一內容物太大就隱藏，防止炸開 */
     }
 
+    /* 內層白色區塊 (看起來像輸入框或顯示框的部分) */
     .collapse-header {
+        background-color: rgba(255, 255, 255, 0.7); /* 半透明白，更有層次感 */
+        border-radius: 8px;
+        padding: 10px 15px;
         display: flex;
         justify-content: space-between;
         align-items: center;
         cursor: pointer;
+        /* 讓內層不要有邊框，直接靠外層的綠色撐場 */
     }
 
     .collapse-header h3 {
-        /* 使用森林綠作為標題顏色，對比更清晰 */
-        color: #59725c; 
-        font-weight: bold;
+        color: #59725c;
+        margin: 0;
+        font-size: 1rem;
     }
 
     #arrow {
-        /* 箭頭也改成森林綠，保持色系一致 */
-        color: #59725c !important; 
-        font-weight: bold;
+        color: #59725c;
+        font-size: 0.8rem;
     }
 
+    /* 展開後的內容 */
     .collapse-content {
         display: none;
-        margin-top: 12px;
-        padding-top: 12px;
-        /* 內部分隔線用森林綠的透明度，才不會太突兀 */
-        border-top: 1px solid rgba(89, 114, 92, 0.3);
-    }
-
-    #myVocabularyList {
-        list-style: none;
-        padding: 0;
-        color: #333; /* 列表文字維持深灰色，閱讀最舒服 */
+        background-color: white; /* 展開後用全白底，方便閱讀 */
+        margin-top: 8px;
+        border-radius: 8px;
+        padding: 10px;
     }
 </style>
 
 <div class="my-list-section">
     <div class="collapse-header" onclick="toggleCollapse()">
-        <h3 style="margin:0; font-size: 1rem;">我的單字本 (<span id="count">0</span>)</h3>
-        <span id="arrow" style="font-size: 0.8rem;">▼ 展開複習</span>
+        <h3>我的單字本 (<span id="count">0</span>)</h3>
+        <span id="arrow">▼ 展開複習</span>
     </div>
+    
     <div id="collapseContent" class="collapse-content">
-        <ul id="myVocabularyList">
-            <li>範例單字：Apple</li>
-        </ul>
+        <ul id="myVocabularyList" style="margin:0; padding-left:20px;">
+            </ul>
     </div>
 </div>
-
 <div class="brand-footer">
     <div class="hr-badge">ELLY｜日本就職準備 × 人資HR思維</div>
     <div class="footer-bio">
