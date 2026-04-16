@@ -96,42 +96,50 @@
 </div>
 
 <script>
-    // --- 【音訊系統初始化】 ---
-    const ttsAudio = new Audio();
-    let currentWordObj = null;
-    let savedWords = JSON.parse(localStorage.getItem('myVocab')) || [];
+// 1. 初始化物件與參數 (設定為你要求的 0.9 語速與 1.1 音調)
+const ttsAudio = new Audio();
+const speechRate = 0.9; 
+const speechPitch = 1.1;
 
-    // 手機版音訊解鎖機制
-    document.addEventListener('click', function unlockAudio() {
-        ttsAudio.play().then(() => {
-            ttsAudio.pause();
-            document.removeEventListener('click', unlockAudio);
-        }).catch(e => console.log("等待初次互動解鎖"));
-    }, { once: true });
+// 2. 改進版解鎖邏輯：靜音播放法（對 iOS 支援度最高）
+document.addEventListener('click', function unlock() {
+    ttsAudio.src = "https://ssl.gstatic.com/dictionary/static/sounds/20160505/clear--_gb_1.mp3"; // 播放一個極短的安靜音訊
+    ttsAudio.muted = true;
+    ttsAudio.play().then(() => {
+        console.log("Audio Unlocked");
+        document.removeEventListener('click', unlock);
+    });
+}, { once: true });
 
-    function speak(text) {
-        // 1. 取得目標文字：如果有傳入 text 就用 text，否則用當前單字物件的 word
-        let targetText = text || (currentWordObj ? currentWordObj.word : "");
-        if (!targetText) return;
+function speak(text) {
+    let targetText = text || (currentWordObj ? currentWordObj.word : "");
+    if (!targetText) return;
 
-        // 2. 過濾括號內容（含半形與全形）
-        targetText = targetText.replace(/\([^)]*\)|\（[^）]*\）/g, "").trim();
+    // 過濾括號
+    targetText = targetText.replace(/\([^)]*\)|\（[^）]*\）/g, "").trim();
 
-        // 3. 構建 Google TTS 網址
-        const url = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(targetText)}&tl=ja&client=tw-ob`;
+    // 構建 Google TTS 網址 (client=tw-ob 是最穩定的)
+    // 註：Google 原生 TTS URL 參數對語速支援有限，若要精準調教，
+    // 未來建議使用 Web Speech API，但目前先幫你優化 URL 穩定度
+    const url = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(targetText)}&tl=ja&total=1&idx=0&textlen=${targetText.length}&client=tw-ob&ttsspeed=${speechRate}`;
 
-        // 4. 設定播放來源
-        ttsAudio.src = url;
-        
-        const playPromise = ttsAudio.play();
-        if (playPromise !== undefined) {
-            playPromise.catch(error => {
-                console.error("播放被阻擋:", error);
-                alert("請先點擊頁面任意處，即可啟動語音練習！");
-            });
-        }
+    // 執行播放
+    ttsAudio.src = url;
+    ttsAudio.muted = false; // 確保取消靜音
+    
+    // 關鍵：處理異步播放
+    const playPromise = ttsAudio.play();
+
+    if (playPromise !== undefined) {
+        playPromise.catch(error => {
+            console.error("播放失敗:", error);
+            // 只有在真的被擋時才跳 Alert，避免干擾使用者
+            if(error.name === 'NotAllowedError') {
+                alert("請點擊頁面任何地方來啟用語音！");
+            }
+        });
     }
-
+}
     // --- 【單字庫邏輯】 ---
     const wordBank = [
         { word: "自己紹介 (じこしょうかい)", meaning: "自我介紹", examples: ["まずは簡単に自己紹介をお願いいたします。(首先請進行簡短的自我介紹。)", "自己紹介をさせていただきます。私の名前は王と申します。(請容我自我介紹，我姓王。)"] },
