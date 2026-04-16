@@ -62,7 +62,7 @@
     <div id="word-display">
         <div class="word-header">
             <button class="phonetic" onclick="speak()">🔊 點擊單字發音</button>
-            <button id="saveBtn" class="save-btn" onclick="toggleSave()">⭐ 加入我的單字本</button>
+            <button id="saveBtn" class="save-btn" onclick="toggleSave()">⭐ 加入單字本</button>
         </div>
         <div class="word" id="currentWord">載入中...</div>
         <div class="meaning" id="currentMeaning"></div>
@@ -121,7 +121,7 @@
 
 <div class="my-list-section">
     <div class="collapse-header" onclick="toggleCollapse()">
-        <h3>我的單字本 (<span id="count">0</span>)</h3>
+        <h3>單字本 (<span id="count">0</span>)</h3>
         <span id="arrow">▼ 展開複習</span>
     </div>
     
@@ -306,7 +306,7 @@
     function updateSaveBtnUI() {
         const btn = document.getElementById('saveBtn');
         const isSaved = savedWords.some(item => item.word === currentWordObj.word);
-        btn.innerText = isSaved ? "❤️已在單字本" : "⭐加入我的單字本";
+        btn.innerText = isSaved ? "❤️已在單字本" : "⭐加入單字本";
         btn.className = isSaved ? "save-btn saved" : "save-btn";
     }
 
