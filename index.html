@@ -99,6 +99,33 @@
 </div>
 
 <script>
+    // --- 語音功能核心函數 ---
+    function speak(text) {
+        let targetText = text || (currentWordObj ? currentWordObj.word : "");
+        if (!targetText) return;
+
+        // 移除半形 () 或全形 （） 及其內部的文字 (例如移除漢字後面的假名提示)
+        targetText = targetText.replace(/\([^)]*\)|\（[^）]*\）/g, "").trim();
+
+        // 構建 Google TTS 網址 (ja 代表日文)
+        const url = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(targetText)}&tl=ja&client=tw-ob`;
+
+        // 建立或取得隱藏的 audio 標籤來播放
+        let audio = document.getElementById('tts-audio');
+        if (!audio) {
+            audio = document.createElement('audio');
+            audio.id = 'tts-audio';
+            document.body.appendChild(audio);
+        }
+        
+        audio.src = url;
+        audio.play().catch(e => {
+            console.error("發音失敗:", e);
+            // 處理瀏覽器阻擋自動播放的情況
+            alert("發音失敗！請先點擊頁面任意處以啟用語音權限。");
+        });
+    }
+
     function toggleCollapse() {
         const content = document.getElementById('collapseContent');
         const arrow = document.getElementById('arrow');
@@ -159,7 +186,7 @@
         { word: "改善 (かいぜん)", meaning: "改善/優化", examples: ["現狀を改善し、コスト削減に成功しました。(改善現狀並成功縮減成本。)"] },
         { word: "目標達成 (もくひょうたっせい)", meaning: "達成目標", examples: ["團隊一丸となり、目標達成を目指します。(全隊一心以達成目標為目標。)"] },
         { word: "團隊ワーク (ちーむわーく)", meaning: "團隊合作", examples: ["團隊ワークを重視し、進捗を共有します。(重視團隊合作並分享進度。)"] },
-        { word: "企劃 (きかく)", meaning: "企劃", examples: ["新規事業の企画に攜わってきました。(曾參與新事業的企劃。)"] },
+        { word: "企劃 (き企画)", meaning: "企劃", examples: ["新規事業の企画に攜わってきました。(曾參與新事業的企劃。)"] },
         { word: "提案 (ていあん)", meaning: "提案", examples: ["クライアントの課題に対し、解決策を提案します。(針對客戶課題提案解決方案。)"] },
         { word: "交渉 (こうしょう)", meaning: "談判/交涉", examples: ["取引先との價格交渉を担当しました。(負責與客戶間的價格談判。)"] },
         { word: "育成 (いくせい)", meaning: "培育/教育", examples: ["後輩の育成に攜わり、團隊の底上げをしました。(參與後輩培育提升團隊實力。)"] },
@@ -172,9 +199,9 @@
         { word: "海外事業 (かいがいじぎょう)", meaning: "海外事業", examples: ["海外事業の拡大に、語學力を活かしたいです。(想在擴大海外事業中發揮語言力。)"] },
         { word: "シェア (しぇあ)", meaning: "市場佔有率", examples: ["業界シェア1位の技術力を学びたいです。(想學習業界市佔第一的技術力。)"] },
         { word: "競爭力 (きょうそうりょく)", meaning: "競爭力", examples: ["貴社の競爭力をさらに高める貢献をします。(為進一步提升貴社競爭力做出貢獻。)"] },
-        { word: "成長性 (せっきょうせい)", meaning: "成長潛力", examples: ["貴社の成長性とともに、自己のスキルアップも目指します。(在公司成長的同時，也以提升自我技能為目標。)"] },
+        { word: "成長性 (せいちょうせい)", meaning: "成長潛力", examples: ["貴社の成長性とともに、自己のスキルアップも目指します。(在公司成長的同時，也以提升自我技能為目標。)"] },
         { word: "顧客層 (こきゃくそう)", meaning: "客群", examples: ["幅広い顧客層に對應できるスキルがあります。(具備能對應廣泛客群的技能。)"] },
-        { word: "サービス (さーびす)", meaning: "服務", examples: ["質の高いサービスを提供することを心がけます。(留意要提供高質量的服務。)"] },
+        { word: "服務 (さーびす)", meaning: "服務", examples: ["質の高いサービスを提供することを心がけます。(留意要提供高質量的服務。)"] },
         { word: "製品 (せいひん)", meaning: "產品/製品", examples: ["貴社の製品の品質の高さに感銘を受けました。(對貴社產品的高品質感到感銘。)"] },
         { word: "商品 (しょうひん)", meaning: "商品", examples: ["新商品の魅力をより多くの方に伝えたいです。(想將新商品的魅力傳達給更多人。)"] },
         { word: "業界トップ (ぎょうかいとっぷ)", meaning: "業界龍頭", examples: ["業界トップを走り続ける姿勢に共感します。(感同持續跑在業界龍頭的態度。)"] },
@@ -185,7 +212,7 @@
         { word: "バリュー (ばりゅー)", meaning: "價值觀", examples: ["貴社のバリューに基づいた行動を実践します。(實踐基於貴社價值觀的行動。)"] },
         { word: "創業 (そうぎょう)", meaning: "創業/創立", examples: ["創業以来の歴史を大切にする姿勢に惹かれました。(被重視創業以來歷史的態度吸引。)"] },
         { word: "展開 (てんかい)", meaning: "發展/展開", examples: ["新規市場への展開に攜わりたいです。(想參與新市場的開拓發展。)"] },
-        { word: "活かす (いかす)", meaning: "活用/發揮", examples: ["自分の強みを最大限に活かせる環境です。(是能最大限度發揮強項的環境。)"] },
+        { word: "活かす (いかす)", meaning: "活用/發揮", examples: ["自己的強みを最大限に活かせる環境です。(是能最大限度發揮強項的環境。)"] },
         { word: "習得する (しゅうとくする)", meaning: "習得/學會", examples: ["新的技術を速やかに習得いたします。(會迅速習得新技術。)"] },
         { word: "やりがい (やりがい)", meaning: "成就感/價值", examples: ["お客様の笑顔が、私にとってのやりがいです。(客戶的笑容是我的成就感來源。)"] },
         { word: "檢討する (けんとうする)", meaning: "討論/研討", examples: ["具體的になぜそうなるか、改めて検討します。(會具體針對為何如此進行研討。)"] },
@@ -202,7 +229,7 @@
         { word: "したがって (したがって)", meaning: "因此", examples: ["したがって、私は貴社を志望いたします。(因此，我應徵貴公司。)"] },
         { word: "加えて (くわえて)", meaning: "加上/此外", examples: ["經驗に加え、語學力也私の武器です。(除了經驗外，語言力也是武器。)"] },
         { word: "一方で (いっぽうで)", meaning: "另一方面", examples: ["一方で、慎重になりすぎる面もあります。(另一方面，也有過於慎重的一面。)"] },
-        { word: "最後に (さいごに)", meaning: "最後", examples: ["最後に、一言お伝えしたいことがございます。(最後，有一句話想告訴各位。)"] },
+        { word: "最後 (さいご) に", meaning: "最後", examples: ["最後に、一言お伝えしたいことがございます。(最後，有一句話想告訴各位。)"] },
         { word: "挑戰したい (ちょうせんしたい)", meaning: "想要挑戰", examples: ["新的分野にぜひ挑戰したいです。(請務必讓我挑戰新領域。)"] },
         { word: "お願いします (おねがいします)", meaning: "拜託了", examples: ["よろしくお願いいたします。(請多指教/拜託了。)"] },
         { word: "ありがとうございます (ありがとうございます)", meaning: "謝謝", examples: ["本日はお時間をいただきありがとうございます。(感謝您今日撥冗。)"] },
@@ -237,27 +264,13 @@
         const list = document.getElementById('exampleList');
         
         list.innerHTML = currentWordObj.examples.map(ex => {
+            // 處理單引號以防 JS 報錯
             const cleanEx = ex.replace(/'/g, "\\'"); 
             return `<div class="example-item" onclick="speak('${cleanEx}')">🔊 ${ex}</div>`;
         }).join('');
         
         updateSaveBtnUI();
         renderSavedList();
-    }
-
-    // --- 【關鍵修正】：發音時自動過濾掉括號（含全形）內的內容 ---
-    function speak(text) {
-        let targetText = text || currentWordObj.word;
-        if (!targetText) return;
-
-        // 使用正規表達式移除半形 () 或全形 （） 及其內部的文字
-        // \([^)]*\) 匹配半形括號內容
-        // \（[^）]*\） 匹配全形括號內容
-        targetText = targetText.replace(/\([^)]*\)|\（[^）]*\）/g, "").trim();
-
-        const url = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(targetText)}&tl=ja&client=tw-ob`;
-        const audio = new Audio(url);
-        audio.play().catch(e => console.error("發音失敗:", e));
     }
 
     function toggleSave() {
