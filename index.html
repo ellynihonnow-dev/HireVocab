@@ -96,49 +96,26 @@
 </div>
 
 <script>
-// 1. 初始化物件與參數 (設定為你要求的 0.9 語速與 1.1 音調)
-const ttsAudio = new Audio();
-const speechRate = 0.9; 
-const speechPitch = 1.1;
-
-// 2. 改進版解鎖邏輯：靜音播放法（對 iOS 支援度最高）
-document.addEventListener('click', function unlock() {
-    ttsAudio.src = "https://ssl.gstatic.com/dictionary/static/sounds/20160505/clear--_gb_1.mp3"; // 播放一個極短的安靜音訊
-    ttsAudio.muted = true;
-    ttsAudio.play().then(() => {
-        console.log("Audio Unlocked");
-        document.removeEventListener('click', unlock);
-    });
-}, { once: true });
-
+// 使用瀏覽器內建發音引擎，不走 Google TTS，解決被擋問題
 function speak(text) {
+    // 1. 取得文字並過濾括號
     let targetText = text || (currentWordObj ? currentWordObj.word : "");
     if (!targetText) return;
-
-    // 過濾括號
     targetText = targetText.replace(/\([^)]*\)|\（[^）]*\）/g, "").trim();
 
-    // 構建 Google TTS 網址 (client=tw-ob 是最穩定的)
-    // 註：Google 原生 TTS URL 參數對語速支援有限，若要精準調教，
-    // 未來建議使用 Web Speech API，但目前先幫你優化 URL 穩定度
-    const url = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(targetText)}&tl=ja&total=1&idx=0&textlen=${targetText.length}&client=tw-ob&ttsspeed=${speechRate}`;
+    // 2. 停止當前正在說的話（避免重疊）
+    window.speechSynthesis.cancel();
 
-    // 執行播放
-    ttsAudio.src = url;
-    ttsAudio.muted = false; // 確保取消靜音
+    // 3. 建立語音請求
+    const utterance = new SpeechSynthesisUtterance(targetText);
     
-    // 關鍵：處理異步播放
-    const playPromise = ttsAudio.play();
+    // 4. 設定參數 (依據你的要求調教)
+    utterance.lang = 'ja-JP';     // 日文
+    utterance.rate = 0.9;         // 語速：稍微慢一點點，聽得更清楚
+    utterance.pitch = 1.1;        // 音調：稍微高一點點，更有精神
 
-    if (playPromise !== undefined) {
-        playPromise.catch(error => {
-            console.error("播放失敗:", error);
-            // 只有在真的被擋時才跳 Alert，避免干擾使用者
-            if(error.name === 'NotAllowedError') {
-                alert("請點擊頁面任何地方來啟用語音！");
-            }
-        });
-    }
+    // 5. 執行發音
+    window.speechSynthesis.speak(utterance);
 }
     // --- 【單字庫邏輯】 ---
     const wordBank = [
