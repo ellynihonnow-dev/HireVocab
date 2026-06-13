@@ -129,23 +129,38 @@
     <a href="https://ellynihonnow-job.my.canva.site/" target="_blank" class="outline-button">日本HR的就職觀察筆記空間</a>
 </div>
 
+JavaScript
 <script>
     let currentWordObj = null;
     let savedWords = JSON.parse(localStorage.getItem('myVocab')) || [];
+    
+    // 您的單字庫
     const wordBank = [
         { word: "自己紹介", reading: "じこしょうかい", meaning: "自我介紹", examples: [ "自己紹介をさせていただきます。"] },
         { word: "自己PR", reading: "じこぴーあーる", meaning: "自我推薦", examples: ["私の強みは行動力です。"] },
         { word: "志望動機", reading: "しぼうどうき", meaning: "應徵動機", examples: ["貴社の企業理念に共感し、志望いたしました。"] }
     ];
 
+// 使用 Google TTS 的發音功能
     function speak() {
         if (!currentWordObj) return;
-        window.speechSynthesis.cancel();
+        
+        // 取得單字或發音提示，並進行網址編碼
         const textToSpeak = currentWordObj.reading || currentWordObj.word;
+        
+        // Google TTS 請求連結
         const url = `https://translate.google.com/translate_tts?ie=UTF-8&tl=ja&client=tw-ob&q=${encodeURIComponent(textToSpeak)}`;
-        new Audio(url).play();
+        
+        // 播放音訊
+        const audio = new Audio(url);
+        audio.play();
+    }    // 隨機獲取單字
+    function getRandomWord() {
+        currentWordObj = wordBank[Math.floor(Math.random() * wordBank.length)];
+        renderWord();
     }
 
+    // 渲染單字頁面
     function renderWord() {
         document.getElementById('currentWord').innerText = currentWordObj.word;
         document.getElementById('currentReading').innerText = currentWordObj.reading;
@@ -154,24 +169,72 @@
         updateSaveBtnUI();
     }
 
+    // 切換收藏狀態
+    function toggleSave() {
+        const index = savedWords.findIndex(item => item.word === currentWordObj.word);
+        if (index > -1) {
+            savedWords.splice(index, 1);
+        } else {
+            savedWords.push(currentWordObj);
+        }
+        localStorage.setItem('myVocab', JSON.stringify(savedWords));
+        updateSaveBtnUI();
+        renderSavedList();
+    }
+
+    // 更新收藏按鈕樣式
     function updateSaveBtnUI() {
         const btn = document.getElementById('saveBtn');
         const isSaved = savedWords.some(item => item.word === currentWordObj.word);
-        btn.innerText = isSaved ? "❤️已收藏" : "⭐加入單字本";
+        btn.innerText = isSaved ? "❤️已在單字本" : "⭐加入單字本";
         btn.className = isSaved ? "save-btn saved" : "save-btn";
     }
 
-    function getRandomWord() {
-        currentWordObj = wordBank[Math.floor(Math.random() * wordBank.length)];
-        renderWord();
+    // 渲染已收藏列表
+    function renderSavedList() {
+        const listEl = document.getElementById('myVocabularyList');
+        document.getElementById('count').innerText = savedWords.length;
+        listEl.innerHTML = savedWords.map((item, idx) => `
+            <li>
+                <div style="flex-grow:1; cursor:pointer;" onclick="loadReviewWord('${item.word}')">
+                    <strong>${item.word}</strong><br>
+                    <small>${item.meaning}</small>
+                </div>
+                <button class="remove-btn" onclick="removeSaved(${idx})">移除</button>
+            </li>
+        `).join('');
     }
 
+    // 點擊列表中的單字進行複習
+    window.loadReviewWord = function(wordText) {
+        const found = wordBank.find(item => item.word === wordText);
+        if (found) {
+            currentWordObj = found;
+            renderWord();
+            window.scrollTo({ top: 0, behavior: 'smooth' }); // 自動捲動到上方
+        }
+    }
+
+    // 移除單字
+    window.removeSaved = function(idx) {
+        savedWords.splice(idx, 1);
+        localStorage.setItem('myVocab', JSON.stringify(savedWords));
+        updateSaveBtnUI();
+        renderSavedList();
+    }
+
+    // 摺疊功能
     function toggleCollapse() {
         const content = document.getElementById('collapseContent');
-        content.style.display = content.style.display === "block" ? "none" : "block";
+        const arrow = document.getElementById('arrow');
+        const isHidden = content.style.display === "none" || content.style.display === "";
+        content.style.display = isHidden ? "block" : "none";
+        arrow.innerText = isHidden ? "▲ 收起清單" : "▼ 展開複習";
     }
 
+    // 初始化
     getRandomWord();
+    renderSavedList();
 </script>
 </body>
 </html>
