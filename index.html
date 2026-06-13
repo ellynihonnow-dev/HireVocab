@@ -141,25 +141,26 @@ JavaScript
         { word: "志望動機", reading: "しぼうどうき", meaning: "應徵動機", examples: ["貴社の企業理念に共感し、志望いたしました。"] }
     ];
 
-// 使用 Google TTS 的發音功能
+// 發音功能：使用 Google TTS 服務
     function speak() {
         if (!currentWordObj) return;
         
-        // 取得單字或發音提示，並進行網址編碼
-        const textToSpeak = currentWordObj.reading || currentWordObj.word;
+        // 確保先停止之前的音訊，避免重疊
+        window.speechSynthesis.cancel();
         
-        // Google TTS 請求連結
+        const textToSpeak = currentWordObj.reading || currentWordObj.word;
         const url = `https://translate.google.com/translate_tts?ie=UTF-8&tl=ja&client=tw-ob&q=${encodeURIComponent(textToSpeak)}`;
         
-        // 播放音訊
         const audio = new Audio(url);
-        audio.play();
-    }    // 隨機獲取單字
+        // 直接觸發播放，若有瀏覽器限制，通常點擊按鈕後即可繞過
+        audio.play().catch(e => console.log("播放被攔截，請確認瀏覽器設定", e));
+    }
+
+    // 隨機獲取單字
     function getRandomWord() {
         currentWordObj = wordBank[Math.floor(Math.random() * wordBank.length)];
         renderWord();
     }
-
     // 渲染單字頁面
     function renderWord() {
         document.getElementById('currentWord').innerText = currentWordObj.word;
