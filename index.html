@@ -142,20 +142,24 @@ JavaScript
     ];
 
 // 發音功能：使用 Google TTS 服務
-    function speak() {
+function speak() {
         if (!currentWordObj) return;
         
-        // 確保先停止之前的音訊，避免重疊
-        window.speechSynthesis.cancel();
-        
+        // 取得單字文字
         const textToSpeak = currentWordObj.reading || currentWordObj.word;
+        
+        // 建立 Google TTS 網址
         const url = `https://translate.google.com/translate_tts?ie=UTF-8&tl=ja&client=tw-ob&q=${encodeURIComponent(textToSpeak)}`;
         
+        // 建立並播放音訊
         const audio = new Audio(url);
-        // 直接觸發播放，若有瀏覽器限制，通常點擊按鈕後即可繞過
-        audio.play().catch(e => console.log("播放被攔截，請確認瀏覽器設定", e));
+        
+        // 使用 play() 並加上 catch 處理潛在的錯誤
+        audio.play().catch(error => {
+            console.error("播放失敗:", error);
+            alert("請先點擊頁面任意處，或是檢查瀏覽器是否阻擋了音效。");
+        });
     }
-
     // 隨機獲取單字
     function getRandomWord() {
         currentWordObj = wordBank[Math.floor(Math.random() * wordBank.length)];
